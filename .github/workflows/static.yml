@@ -1,0 +1,42 @@
+name: Single Chain Squid Workflow
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2.4.1
+      with:
+        node-version: '20.9.0'
+
+    - name: Install global dependencies
+      run: npm install --global @subsquid/cli@latest
+
+    - name: Verify installation
+      run: sqd --version
+
+    - name: Initialize squid
+      run: |
+        sqd init my-triple-proc-squid -t https://github.com/subsquid-quests/triple-chain-squid
+        cd my-triple-proc-squid
+
+    - name: Start Docker containers
+      run: sqd up
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build source code
+      run: sqd build
+
+    - name: Create database tables
+      run: sqd migration:apply
+
+    - name: Start squid
+      run: sqd run
